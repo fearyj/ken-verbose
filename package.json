@@ -1,0 +1,21 @@
+{
+  "name": "ken-verbose",
+  "version": "1.0.0",
+  "description": "ken --verbose | Portfolio & Blog",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fearyj/ken-verbose.git"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@astrojs/mdx": "^5.0.0",
+    "@astrojs/rss": "^4.0.17",
+    "astro": "^6.0.2"
+  }
+}

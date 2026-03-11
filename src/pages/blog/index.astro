@@ -1,0 +1,97 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const allPosts = await getCollection("blog");
+const posts = allPosts.sort(
+  (a, b) =>
+    new Date(b.data.date).getTime() - new Date(a.data.date).getTime()
+);
+---
+
+<BaseLayout title="Blog | ken --verbose">
+  <section>
+    <div class="terminal-heading">
+      <span class="prompt">$</span> ls ./blog/
+    </div>
+    <h1>Blog</h1>
+    <p>Projects, writeups, and things I've learned.</p>
+
+    <div class="posts">
+      {
+        posts.map((post) => (
+          <a href={`${import.meta.env.BASE_URL}/blog/${post.data.slug}/`} class="card post-card">
+            <div class="post-meta">
+              <span class="date">{post.data.date}</span>
+              {post.data.tags && (
+                <div class="tags">
+                  {post.data.tags.map((tag: string) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.description}</p>
+          </a>
+        ))
+      }
+    </div>
+
+    {
+      posts.length === 0 && (
+        <div class="empty">
+          <p>No posts yet. Check back soon!</p>
+        </div>
+      )
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .post-card {
+    display: block;
+    color: inherit;
+  }
+
+  .post-card h3 {
+    color: var(--text);
+    transition: color 0.2s;
+  }
+
+  .post-card:hover h3 {
+    color: var(--accent);
+  }
+
+  .post-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .date {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .tags {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+</style>

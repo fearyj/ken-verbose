@@ -1,0 +1,68 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "ken --verbose | Portfolio & Blog" } = Astro.props;
+const currentPath = Astro.url.pathname;
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav>
+      <div class="nav-inner">
+        <a href={`${base}/`} class="logo">ken <span>--verbose</span></a>
+        <ul class="nav-links">
+          <li>
+            <a href={`${base}/`} class={currentPath === `${base}/` ? "active" : ""}>
+              home
+            </a>
+          </li>
+          <li>
+            <a
+              href={`${base}/experience/`}
+              class={currentPath.includes("/experience") ? "active" : ""}
+            >
+              experience
+            </a>
+          </li>
+          <li>
+            <a
+              href={`${base}/blog/`}
+              class={currentPath.includes("/blog") ? "active" : ""}
+            >
+              blog
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <p>© {new Date().getFullYear()} ken --verbose</p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  @import "../styles/global.css";
+</style>

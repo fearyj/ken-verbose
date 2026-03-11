@@ -1,0 +1,113 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const experiences = [
+  {
+    role: "Software Engineer",
+    company: "Your Company",
+    period: "2023 — Present",
+    description:
+      "Building scalable web applications and services. Working with modern cloud infrastructure and CI/CD pipelines.",
+    tech: ["TypeScript", "React", "AWS", "Docker"],
+  },
+  {
+    role: "Junior Developer",
+    company: "Previous Company",
+    period: "2021 — 2023",
+    description:
+      "Developed features for customer-facing products. Collaborated with cross-functional teams to ship MVPs and iterate based on feedback.",
+    tech: ["JavaScript", "Node.js", "PostgreSQL"],
+  },
+  {
+    role: "Intern",
+    company: "Startup Co",
+    period: "2020 — 2021",
+    description:
+      "Built internal tools and automation scripts. First exposure to production systems and agile workflows.",
+    tech: ["Python", "Flask", "MySQL"],
+  },
+];
+---
+
+<BaseLayout title="Experience | ken --verbose">
+  <section>
+    <div class="terminal-heading">
+      <span class="prompt">$</span> cat experience.log
+    </div>
+    <h1>Experience</h1>
+    <p>Where I've worked and what I've built.</p>
+
+    <div class="timeline">
+      {
+        experiences.map((exp) => (
+          <div class="card exp-card">
+            <div class="exp-header">
+              <div>
+                <h3>{exp.role}</h3>
+                <p class="company">{exp.company}</p>
+              </div>
+              <span class="period">{exp.period}</span>
+            </div>
+            <p class="description">{exp.description}</p>
+            <div class="tags">
+              {exp.tech.map((t) => (
+                <span class="tag">{t}</span>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .exp-card {
+    position: relative;
+  }
+
+  .exp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .company {
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 0;
+  }
+
+  .period {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  .description {
+    font-size: 0.95rem;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  @media (max-width: 640px) {
+    .exp-header {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+</style>
