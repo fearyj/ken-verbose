@@ -3,28 +3,28 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 const experiences = [
   {
-    role: "Software Engineer",
-    company: "Your Company",
-    period: "2023 — Present",
+    role: "HPC Research Assistant",
+    company: "NTU Asian School of the Environment",
+    period: "Mar 2026 — Present",
     description:
-      "Building scalable web applications and services. Working with modern cloud infrastructure and CI/CD pipelines.",
-    tech: ["TypeScript", "React", "AWS", "Docker"],
+      "Ran large-scale dynamic rupture simulations of the Mentawai seismic region on NVIDIA H100 GPU clusters to model downstream seismic impact on Singapore. Performed CPU, GPU, and MPI profiling to benchmark and optimize PyQuake3D, identifying bottlenecks in large-scale parallel scientific workflows.",
+    tech: ["HPC", "CUDA", "MPI", "Python", "GPU Profiling"],
   },
   {
-    role: "Junior Developer",
-    company: "Previous Company",
-    period: "2021 — 2023",
+    role: "HPC Performance Engineer Intern",
+    company: "National Supercomputing Centre (NSCC) Singapore",
+    period: "Aug 2025 — Nov 2025",
     description:
-      "Developed features for customer-facing products. Collaborated with cross-functional teams to ship MVPs and iterate based on feedback.",
-    tech: ["JavaScript", "Node.js", "PostgreSQL"],
+      "Benchmarked GROMACS molecular dynamics on A100/H100 GPU clusters for scalability and energy efficiency. Profiled applications with NVIDIA Nsight Systems, Intel RAPL, Arm Forge, and IPM to identify bottlenecks across heterogeneous compute architectures. Fine-tuned LLaMA 3.1 (8B/70B) using Megatron-LM on DGX H100 systems and built an agentic AI prototype with LangGraph to auto-validate PBS job scripts.",
+    tech: ["HPC", "GROMACS", "NVIDIA Nsight", "Megatron-LM", "LangGraph", "MPI"],
   },
   {
-    role: "Intern",
-    company: "Startup Co",
-    period: "2020 — 2021",
+    role: "IT Trainee (Cybersecurity)",
+    company: "ASE Singapore PTE LTD",
+    period: "Jan 2025 - May 2025",
     description:
-      "Built internal tools and automation scripts. First exposure to production systems and agile workflows.",
-    tech: ["Python", "Flask", "MySQL"],
+      "Enhanced SIEM correlation rules and alerts to detect unauthorized access, privilege escalation, and data exfiltration across company infrastructure. Conducted log analysis and forensic investigation to triage triggered alerts. Performed penetration testing on internal servers to validate detection accuracy, led vulnerability patching across 60+ production devices to full compliance, and authored the team's security incident response handbook.",
+    tech: ["SIEM", "Penetration Testing", "Log Analysis", "Vulnerability Management", "Incident Response"],
   },
 ];
 ---
