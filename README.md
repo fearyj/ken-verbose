@@ -32,3 +32,5 @@ Your content here...
 Pushes to `main` auto-deploy to GitHub Pages via the workflow in `.github/workflows/deploy.yml`.
 
 **Setup:** In your GitHub repo, go to Settings → Pages → Source → select "GitHub Actions".
+
+Live at: https://fearyj.github.io/ken-verbose/
