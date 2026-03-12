@@ -353,6 +353,22 @@ p {
   color: var(--green);
 }
 
+/* Mermaid diagrams */
+.prose .mermaid {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.prose .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Horizontal rules */
 .prose hr {
   border: none;

@@ -43,6 +43,54 @@ const { Content } = await render(post);
       <a href={`${import.meta.env.BASE_URL}/blog/`}>← back to blog</a>
     </div>
   </article>
+
+  <script is:inline type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "dark",
+      themeVariables: {
+        primaryColor: "#164e63",
+        primaryTextColor: "#22d3ee",
+        primaryBorderColor: "#22d3ee",
+        lineColor: "#3f3f46",
+        secondaryColor: "#1a1a2e",
+        tertiaryColor: "#0a0a0a",
+        background: "#111111",
+        mainBkg: "#161616",
+        nodeBorder: "#22d3ee",
+        clusterBkg: "#0a0a0a",
+        clusterBorder: "#27272a",
+        titleColor: "#22d3ee",
+        edgeLabelBackground: "#111111",
+        nodeTextColor: "#e4e4e7",
+        actorTextColor: "#e4e4e7",
+        actorBorder: "#22d3ee",
+        signalColor: "#e4e4e7",
+        labelBoxBkgColor: "#161616",
+        labelBoxBorderColor: "#22d3ee",
+        labelTextColor: "#e4e4e7",
+        noteBkgColor: "#1a1a2e",
+        noteTextColor: "#e4e4e7",
+        noteBorderColor: "#22d3ee",
+      },
+      flowchart: { curve: "basis", padding: 15 },
+      fontFamily: "JetBrains Mono, monospace",
+      fontSize: 13,
+    });
+
+    // Convert ```mermaid code blocks to rendered diagrams
+    document.querySelectorAll('pre[data-language="mermaid"]').forEach((pre) => {
+      const code = pre.querySelector("code");
+      if (!code) return;
+      const div = document.createElement("div");
+      div.className = "mermaid";
+      div.textContent = code.textContent;
+      pre.replaceWith(div);
+    });
+
+    await mermaid.run({ querySelector: ".mermaid" });
+  </script>
 </BaseLayout>
 
 <style>

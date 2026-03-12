@@ -49,6 +49,45 @@ Built as a team project. The problem: social isolation is a growing issue, and e
 - `Gemini Embedding (gemini-embedding-001)` — 768-dimensional semantic search embeddings
 - `MemoryVectorStore` — in-memory vector store for event similarity search
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Android["Android App (Java)"]
+        Feed["Personalized Feed<br/>ViewPager2"]
+        Map["Interactive Map<br/>Google Maps SDK"]
+        Chat["RAG Chatbot<br/>Chat UI"]
+        Health["Health Data<br/>Step Count + HR"]
+        Gemini_Device["Gemini 2.5 Flash<br/>On-Device Ranking"]
+        Room["Room DB<br/>Offline Cache"]
+    end
+
+    subgraph Backend["Backend (Express.js)"]
+        API["REST API<br/>20+ Endpoints"]
+        SQLite[(SQLite3<br/>Events, Users, Messages)]
+        Multer["Multer<br/>File Uploads"]
+    end
+
+    subgraph RAG["RAG Pipeline (LangGraph)"]
+        Embed["Gemini Embedding<br/>768-dim Vectors"]
+        VectorStore["MemoryVectorStore<br/>Similarity Search"]
+        Retrieval["1. Retrieval Node<br/>Top-5 Events"]
+        Synthesis["2. Synthesis Node<br/>Gemini 2.5 Flash"]
+        Constraint["3. Constraint Checker<br/>Validate Event IDs"]
+    end
+
+    Android <-->|Retrofit 2| Backend
+    Chat --> RAG
+    Feed --> Gemini_Device
+    Health --> Gemini_Device
+    Embed --> VectorStore
+    VectorStore --> Retrieval
+    Retrieval --> Synthesis
+    Synthesis --> Constraint
+    Constraint --> SQLite
+    Constraint --> Chat
+```
+
 ## How the RAG Chatbot Works
 
 The chatbot is the most technically interesting part. Instead of keyword-based event search, users can ask natural language questions and get relevant results. The backend runs a 3-node LangGraph pipeline:
@@ -61,6 +100,21 @@ The chatbot is the most technically interesting part. Instead of keyword-based e
 
 The vector store is re-indexed on server startup, and conversation history is tracked across multi-turn interactions so the chatbot maintains context.
 
+## RAG Chatbot Pipeline
+
+```mermaid
+graph LR
+    A["User Message<br/>'chill art events<br/>this weekend?'"] --> B["Embed Query<br/>gemini-embedding-001"]
+    B --> C["Vector Similarity<br/>Search Top-5"]
+    C --> D["Synthesis<br/>Gemini 2.5 Flash"]
+    D --> E{"Response Type"}
+    E -->|events| F["Event Cards<br/>+ Intro Message"]
+    E -->|suggestions| G["3 Event Ideas<br/>to Host"]
+    E -->|text| H["General<br/>Conversation"]
+    F & G & H --> I["Constraint Check<br/>Validate IDs +<br/>Participant Counts"]
+    I --> J["Final Response<br/>to User"]
+```
+
 ## On-Device AI Ranking
 
 The personalized feed doesn't just filter by tags — it uses Gemini 2.5 Flash directly on the device to re-rank events. The flow:
@@ -72,6 +126,17 @@ The personalized feed doesn't just filter by tags — it uses Gemini 2.5 Flash d
 5. UI reorders the event list — no server round-trip needed
 
 If Gemini fails (network issues, API errors), the feed falls back to the original chronological order.
+
+### On-Device Ranking Flow
+
+```mermaid
+graph LR
+    A["Fetch All Events<br/>from Backend"] --> B["Load User Bio<br/>+ Interest Tags"]
+    B --> C["Gemini 2.5 Flash<br/>On-Device Ranking"]
+    C --> D{"Success?"}
+    D -->|Yes| E["Reorder Feed<br/>by Relevance"]
+    D -->|No| F["Fallback<br/>Chronological Order"]
+```
 
 ## Interesting Challenges
 

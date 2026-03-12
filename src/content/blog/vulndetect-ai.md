@@ -65,6 +65,61 @@ I wanted to see if LLMs could help — not by replacing static analysis, but by 
 
 **DuckDuckGo Search** — For retrieving CWE context and function documentation from cppreference.com and Linux man pages. This is toggleable — the ablation study showed it reduces false positives by 2-6 per model.
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + Vite)"]
+        UI[Dashboard UI]
+        Charts[Recharts Benchmarks]
+        WS_Client[WebSocket Client]
+    end
+
+    subgraph Backend["Backend (FastAPI)"]
+        API[REST API]
+        WS_Server[WebSocket Server]
+        Scheduler[Scan Scheduler]
+    end
+
+    subgraph Pipeline["LangGraph Pipeline"]
+        N1[1. Extract Code Context<br/>Tree-sitter AST]
+        N2[2. Fetch Documentation<br/>DuckDuckGo + cppreference]
+        N3[3. Analyze Return Values]
+        N4[4. Web Search CWE Context]
+        N5[5. LLM Verification<br/>Ollama]
+        N6[6. Make Decision<br/>JSON Parser]
+    end
+
+    subgraph Storage["Storage Layer"]
+        PG[(PostgreSQL)]
+        MinIO[(MinIO<br/>Object Storage)]
+        Redis[(Redis Cache)]
+    end
+
+    subgraph Analysis["Static Analysis"]
+        CodeQL[CodeQL v2.20.1<br/>security-extended]
+        SARIF[SARIF Results]
+    end
+
+    UI --> API
+    WS_Client <-.->|real-time progress| WS_Server
+    API --> Scheduler
+    Scheduler --> CodeQL
+    CodeQL --> SARIF
+    SARIF --> N1
+    N1 --> N2
+    N2 --> N3
+    N3 --> N4
+    N4 --> N5
+    N5 --> N6
+    N6 --> PG
+    API --> PG
+    API --> MinIO
+    N2 --> Redis
+    N4 --> Redis
+    Charts --> API
+```
+
 ## The Pipeline
 
 The core of the system is a 6-node LangGraph state machine. When CodeQL flags a line of code, the pipeline does this:
@@ -80,6 +135,21 @@ The core of the system is a 6-node LangGraph state machine. When CodeQL flags a 
 5. **LLM Verification** — Sends the annotated source file, all gathered context, and a structured prompt to the LLM. The prompt includes the flagged line, function documentation, return value analysis, and CWE context.
 
 6. **Make Decision** — Parses the LLM's structured JSON response to extract: true/false positive classification, confidence score, reasoning, and remediation recommendations.
+
+## Pipeline Flow
+
+```mermaid
+graph LR
+    A["CodeQL<br/>Flags Vulnerability"] --> B["Extract Code<br/>Context"]
+    B --> C["Fetch<br/>Documentation"]
+    C --> D["Analyze<br/>Return Values"]
+    D --> E["Web Search<br/>CWE Context"]
+    E --> F["LLM<br/>Verification"]
+    F --> G{"Decision"}
+    G -->|True Positive| H["Keep Alert ⚠️"]
+    G -->|False Positive| I["Suppress Alert ✓"]
+    G -->|Parse Fail| H
+```
 
 ## Results
 

@@ -73,6 +73,52 @@ The agent isn't just a wrapper around an LLM — it has guardrails against hallu
 
 **Flask + SocketIO** — The analysis takes 30-60 minutes. The real-time dashboard streams agent logs, findings, and visualizations as they're produced so you don't stare at a blank screen.
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Input["Input Data"]
+        PCAP["PCAPs<br/>52 GB"]
+        Zeek["Zeek Logs<br/>30 GB"]
+        Suricata["Suricata Alerts<br/>600K+"]
+    end
+
+    subgraph StreamingLayer["Streaming Parsers (Constant Memory)"]
+        TS["tshark<br/>Chunked Extraction"]
+        NF["nfstream<br/>C Flow Engine"]
+        ZP["Custom Zeek<br/>JSON Parser"]
+        SP["Custom Suricata<br/>Alert Parser"]
+    end
+
+    subgraph Agent["LLM Agent (Tool-Calling)"]
+        LLM["Gemini / Groq / Ollama"]
+        Protocol["13-Step Protocol<br/>Mandatory Tool Calls"]
+        Guardrails["Hallucination<br/>Guardrails"]
+        Checkpoint["Checkpoint<br/>System"]
+    end
+
+    subgraph ThreatIntel["Threat Intelligence"]
+        YARA["YARA Rules"]
+        VT["VirusTotal API"]
+        IOC["Built-in IOCs<br/>ThreatFox, Cobalt Strike"]
+    end
+
+    subgraph Output["Output"]
+        Dashboard["Flask + SocketIO<br/>Real-time Dashboard"]
+        PDF["ReportLab<br/>PDF Report"]
+        JSON["Structured JSON<br/>Findings"]
+        MITRE["MITRE ATT&CK<br/>Mapping"]
+    end
+
+    PCAP --> TS & NF
+    Zeek --> ZP
+    Suricata --> SP
+    TS & NF & ZP & SP --> Agent
+    Agent --> ThreatIntel
+    ThreatIntel --> Agent
+    Agent --> Output
+```
+
 ## How the Agent Works
 
 The agent follows a mandatory 13-step investigation protocol. It cannot finish until all required tools are called — this prevents the LLM from jumping to conclusions.
@@ -92,6 +138,29 @@ The agent follows a mandatory 13-step investigation protocol. It cannot finish u
 13. Generate PDF report
 
 After every tool call, a checkpoint is saved — so if the agent hits a rate limit or crashes, it resumes without re-running the entire analysis.
+
+## Investigation Protocol Flow
+
+```mermaid
+graph TD
+    S1["1. Parse Suricata<br/>Alert Summary"] --> S2["2. Extract C2<br/>IOCs"]
+    S2 --> S3["3. Identify<br/>Affected Hosts"]
+    S3 --> S4["4. Deep-Dive Alerts<br/>Cobalt Strike, DGA, Exploits"]
+    S4 --> S5["5. Analyze Zeek<br/>DCE/RPC"]
+    S5 --> S6["6. Parse Zeek<br/>Connections"]
+    S6 --> S7["7. DNS Analysis<br/>Beaconing, DGA"]
+    S7 --> S8["8. HTTP<br/>Analysis"]
+    S8 --> S9["9. TLS/SSL<br/>Analysis"]
+    S9 --> S10["10. File Transfer<br/>Analysis"]
+    S10 --> S11["11. MITRE ATT&CK<br/>Mapping"]
+    S11 --> S12["12. Save JSON<br/>Findings"]
+    S12 --> S13["13. Generate<br/>PDF Report"]
+
+    style S4 fill:#7f1d1d,stroke:#ef4444,color:#fca5a5
+    style S7 fill:#7f1d1d,stroke:#ef4444,color:#fca5a5
+    style S11 fill:#164e63,stroke:#22d3ee,color:#22d3ee
+    style S13 fill:#14532d,stroke:#4ade80,color:#4ade80
+```
 
 ## Detection Highlights
 

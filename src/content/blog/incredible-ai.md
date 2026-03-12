@@ -53,6 +53,57 @@ Built for **TechFest 2025**. The idea: misinformation spreads faster than correc
 **Web Scraping:**
 - `BeautifulSoup4` — parsing Snopes for trending debunked myths
 
+## System Architecture
+
+```mermaid
+graph TB
+    subgraph Frontend["Frontend (React + Three.js)"]
+        Landing["3D Landing Page<br/>Three.js + GSAP"]
+        InFactUI["InFact Chat UI"]
+        InDetectUI["InDetect Upload UI"]
+        MythsUI["Trending Myths Feed"]
+    end
+
+    subgraph Backend["Backend (Flask)"]
+        API["Flask REST API<br/>Blueprint Architecture"]
+        CORS["Flask-CORS"]
+    end
+
+    subgraph InFactPipeline["InFact Pipeline"]
+        OCR["AWS Textract<br/>Image → Text"]
+        FactCheck["Google Fact Check API<br/>Existing Reviews"]
+        Gemini["Google Gemini<br/>Claim Analysis"]
+        Search["SerpAPI<br/>Source Search"]
+        Credibility["Gemini<br/>Credibility Scoring"]
+        DALLE["DALL-E 3<br/>Storyboard Comics"]
+        GPT4o["GPT-4o<br/>Panel Descriptions"]
+    end
+
+    subgraph InDetectPipeline["InDetect Pipeline"]
+        S3["AWS S3<br/>File Storage"]
+        Arya["Arya AI API<br/>Deepfake Detection"]
+        CV["OpenCV + Pillow<br/>Watermark Stamping"]
+    end
+
+    subgraph Scraper["Trending Myths"]
+        Snopes["Snopes Scraper<br/>BeautifulSoup4"]
+    end
+
+    Frontend --> API
+    API --> InFactPipeline
+    API --> InDetectPipeline
+    API --> Scraper
+    OCR --> FactCheck
+    FactCheck --> Gemini
+    Gemini --> Search
+    Search --> Credibility
+    Credibility --> DALLE
+    DALLE --> GPT4o
+    S3 --> Arya
+    Arya --> CV
+    CV --> S3
+```
+
 ## How It Works
 
 ### InFact — Fact-Checking Pipeline
@@ -67,6 +118,25 @@ The fact-checking flow chains 5 different APIs together:
 6. **Storyboard** — DALL-E 3 generates a 4-panel comic strip showing the motive behind the misinformation and its consequences, then GPT-4o writes a description of each panel
 
 The result is a comprehensive breakdown: falsehood score with progress bar, credibility-rated sources, detailed reasoning, practical tips, and a shareable comic.
+
+### InFact Data Flow
+
+```mermaid
+graph LR
+    A["User Input<br/>Text or Image"] --> B{"Image?"}
+    B -->|Yes| C["AWS Textract<br/>OCR"]
+    B -->|No| D["Raw Text"]
+    C --> D
+    D --> E["Google Fact Check<br/>API Lookup"]
+    D --> F["Gemini Analysis<br/>Falsehood Score"]
+    E --> G["Results"]
+    F --> G
+    G --> H["SerpAPI<br/>Source Search"]
+    H --> I["Gemini<br/>Credibility Rating"]
+    I --> J["DALL-E 3<br/>Comic Strip"]
+    J --> K["GPT-4o<br/>Descriptions"]
+    K --> L["Final Report<br/>Score + Sources + Comic"]
+```
 
 ### InDetect — Deepfake Detection
 
