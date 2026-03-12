@@ -108,6 +108,26 @@ footer {
   font-family: var(--font-mono);
 }
 
+footer .social-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+footer .social-links a {
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+footer .social-links a:hover {
+  color: var(--accent);
+}
+
+footer .separator {
+  color: var(--border);
+}
+
 /* Terminal-style heading */
 .terminal-heading {
   font-family: var(--font-mono);
