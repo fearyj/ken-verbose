@@ -20,9 +20,34 @@ I wanted to see if LLMs could help — not by replacing static analysis, but by 
 
 **VulnDetect AI** is a full-stack system that pipes CodeQL results through a multi-agent LangGraph pipeline. Each vulnerability flagged by CodeQL gets analyzed by a chain of specialized agents that gather context, retrieve documentation, and ultimately ask a local LLM: *"Is this actually a vulnerability, or is CodeQL wrong?"*
 
-## Tech Stack & Why
+## Tech Stack
 
-Every tool in the stack was chosen for a specific reason:
+**Static Analysis:**
+- `CodeQL v2.20.1` — security-extended query suite (454 queries, 20+ CWEs)
+
+**LLM / Agent Layer:**
+- `LangGraph` — multi-agent orchestration with shared state machine
+- `Ollama` — local LLM inference (Qwen3:14b, LLaMA 3.1:70b, DeepSeek-R1:70b, gpt-oss:20b, Magistral:24b)
+
+**Code Intelligence:**
+- `Tree-sitter` — AST parsing for code context extraction
+- `DuckDuckGo Search` — CWE context and function documentation retrieval
+
+**Backend:**
+- `FastAPI` — REST API with WebSocket support for real-time progress
+- `PostgreSQL` — scan metadata and vulnerability results
+- `MinIO` — object storage for uploaded source files
+- `Redis` — caching documentation lookups
+- `SQLAlchemy` + `Alembic` — ORM and migrations
+- `Docker Compose` — containerized deployment
+
+**Frontend:**
+- `React 19` + `Vite` — UI framework and build tool
+- `TailwindCSS` — styling
+- `Recharts` — benchmark result visualization
+- `React Router v7` — client-side routing
+
+## Why These Choices
 
 **CodeQL v2.20.1** — Industry-standard static analysis from GitHub. I used the `cpp-security-extended.qls` query suite, which covers 20+ CWE categories. I pinned the version to v2.20.1 to match the CASTLE benchmark exactly, ensuring fair comparison.
 
@@ -60,14 +85,34 @@ The core of the system is a 6-node LangGraph state machine. When CodeQL flags a 
 
 I evaluated the system against the **CASTLE benchmark** — 250 C files across 25 CWEs. The numbers tell an interesting story:
 
-| Model | Precision | Recall | F1 |
-|---|---|---|---|
-| CodeQL alone | 41.5% | 26.0% | 32.0% |
-| Qwen3:14b | 52.2% | 23.3% | 32.3% |
-| Magistral:24b | **89.3%** | 16.7% | 28.1% |
-| gpt-oss:20b + web search | 58.3% | 25.2% | **36.8%** |
+### CASTLE Benchmark Results — All Configurations
 
-Magistral:24b pushed precision to **89.3%** — meaning when it says something is a real vulnerability, it's right nearly 9 out of 10 times. The tradeoff is recall: it's more conservative and misses some true positives. With web search enabled, gpt-oss:20b achieved the best F1 score at **36.8%**, showing that external context helps the model make better-calibrated decisions.
+| Method | TP | FP | TN | FN | Prec. | Rec. | F1 |
+|---|---|---|---|---|---|---|---|
+| CodeQL only (baseline) | 39 | 55 | 81 | 111 | 41.5% | 26.0% | 32.0% |
+| + Qwen3:14b | 35 | 32 | 88 | 115 | 52.2% | 23.3% | 32.3% |
+| + Llama3.1:70b | 31 | 27 | 92 | 119 | 53.4% | 20.7% | 29.8% |
+| + DeepSeek-R1:70b | 35 | 27 | 89 | 115 | 56.5% | 23.3% | 33.0% |
+| + gpt-oss:20b | 35 | 25 | 90 | 115 | 58.3% | 23.3% | **33.3%** |
+| + Magistral:24b | 25 | 3 | 98 | 125 | **89.3%** | 16.7% | 28.1% |
+
+All LLM configurations used confidence threshold = 0.70, no web search.
+
+Every model improved precision over CodeQL's baseline 41.5%. **Magistral:24b** was the most aggressive filter — it pushed precision to **89.3%** by removing 52 of 55 false positives, but at the cost of also dropping 14 true positives. **gpt-oss:20b** achieved the best F1 balance at **33.3%**, removing 30 FPs while only losing 4 TPs. Interestingly, Llama3.1:70b (the largest model) performed worse than smaller models like Qwen3:14b — model size alone doesn't determine filter quality.
+
+### Web Search Ablation
+
+I ran each model with and without the web search node (Node 4: CWE context retrieval) to measure its impact:
+
+| Model | TP (no web) | FP (no web) | TP (web) | FP (web) | ΔFP | ΔTP |
+|---|---|---|---|---|---|---|
+| Qwen3:14b | 35 | 32 | 34 | 28 | −4 | −1 |
+| Llama3.1:70b | 31 | 27 | 31 | 26 | −1 | 0 |
+| DeepSeek-R1:70b | 35 | 27 | 36 | 25 | −2 | +1 |
+| gpt-oss:20b | 35 | 25 | 37 | 19 | **−6** | **+2** |
+| Magistral:24b | 25 | 3 | 26 | 2 | −1 | +1 |
+
+Web search consistently reduced false positives across all models (−1 to −6 FP), and for DeepSeek, gpt-oss, and Magistral it actually *increased* true positives too. **gpt-oss:20b benefited the most** — gaining 2 TPs while dropping 6 FPs with web search enabled. This shows that external CWE context helps the model make better-calibrated decisions, especially for models that are already good at the task.
 
 ## Problems I Faced
 

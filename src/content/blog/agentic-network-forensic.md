@@ -20,19 +20,58 @@ Network forensic investigations are tedious. You're staring at Wireshark, greppi
 
 The agent isn't just a wrapper around an LLM — it has guardrails against hallucination, mandatory tool-call requirements, and a findings pipeline that reconstructs results directly from raw evidence (bypassing LLM context window truncation).
 
-## Tech Stack & Why
+## Tech Stack
 
-**Google Gemini (primary LLM)** — The 1M token context window was critical. With 600K+ alerts and 30 GB of logs, I needed a model that could hold substantial context. Gemini's free tier made it practical for repeated benchmark runs. I also added Groq (128K tokens, LLaMA 3.3 70B) and Ollama (local, Qwen3:14b) as alternatives — Groq for speed, Ollama for fully offline analysis where sensitive network data shouldn't leave the machine.
+**LLM / Agent Layer:**
+- `Google Gemini` (gemini-2.0-flash) — primary LLM, 1M token context
+- `Groq` (LLaMA 3.3 70B) — alternative, 128K tokens, faster inference
+- `Ollama` (Qwen3:14b / LLaMA 3.1) — fully local, no API key needed
 
-**tshark + nfstream** — I needed to process 20 GB+ PCAPs without loading them into memory. tshark (Wireshark CLI) lets you stream packet fields with `-c` count limits for chunked extraction. nfstream is a C-based flow engine that computes flow-level features in a streaming fashion — critical for beaconing and exfiltration detection at scale.
+**Network Analysis & PCAP Processing:**
+- `tshark` — streaming packet field extraction from 20 GB+ PCAPs
+- `nfstream` — C-based flow engine for beaconing and exfiltration detection
+- `dpkt` — lightweight packet parsing
+- `scapy` — packet crafting and deep inspection
+- `pyshark` — Python wrapper around tshark
 
-**Custom Zeek & Suricata parsers** — The Zeek logs were ECS-wrapped JSON from Filebeat (30 GB). Off-the-shelf parsers would try to load the entire file. I wrote streaming parsers that process line-by-line, bucketing alerts by severity and category, deduplicating ET/ETPRO rule pairs, and tracking per-source-IP statistics — all with constant memory footprint.
+**Log Parsing & Data Processing:**
+- Custom streaming Zeek JSON parser (handles 30 GB ECS-wrapped logs)
+- Custom streaming Suricata alert parser (600K+ alerts, ET/ETPRO deduplication)
+- `pandas` / `numpy` — data aggregation
+- `networkx` — connection graph analysis
 
-**YARA + ThreatFox IOCs** — For malware signature scanning and known-bad indicator matching. I embedded IOC lists for Cobalt Strike, SocGholish, cryptominers, and other common threats so the agent can flag known infrastructure immediately.
+**Threat Intelligence & Detection:**
+- `yara-python` — malware signature scanning
+- `VirusTotal API` — hash and IP reputation lookups
+- `dnspython` — DNS resolution and analysis
+- `ipwhois` — IP geolocation and ASN lookups
+- Built-in IOC lists (ThreatFox, Cobalt Strike, SocGholish, cryptominers)
 
-**Flask + SocketIO** — Real-time web dashboard that streams agent logs, shows protocol charts, top talkers, findings tables, and MITRE ATT&CK visualizations as the analysis runs.
+**Web Dashboard:**
+- `Flask` + `Flask-SocketIO` — real-time WebSocket communication
+- `Chart.js` — protocol charts, top talkers, MITRE ATT&CK visualization
 
-**ReportLab** — PDF generation for the final forensic report with formatted sections, tables, timelines, and MITRE ATT&CK mappings.
+**Report Generation:**
+- `ReportLab` — PDF with formatted sections, tables, and timelines
+- `Jinja2` — template-based rendering
+- Markdown + JSON output for dashboard consumption
+
+**CLI & Utilities:**
+- `click` — command-line interface
+- `rich` — terminal output with colors and progress bars
+- `pydantic` — structured data validation
+
+## Why These Choices
+
+**Google Gemini** — The 1M token context window was critical. With 600K+ alerts and 30 GB of logs, I needed a model that could hold substantial context. Gemini's free tier made it practical for repeated runs. Groq was added for speed, Ollama for fully offline analysis where sensitive network data shouldn't leave the machine.
+
+**tshark + nfstream over loading PCAPs into memory** — 52 GB of PCAPs can't fit in RAM. tshark streams packet fields with `-c` count limits for chunked extraction. nfstream computes flow-level features via its C engine in a streaming fashion — both run with constant memory regardless of input size.
+
+**Custom parsers over off-the-shelf** — The Zeek logs were 30 GB of ECS-wrapped JSON from Filebeat. Existing parsers would try to load the entire file. My streaming parsers process line-by-line, bucketing by severity, deduplicating rule pairs, and tracking per-source-IP stats — all with constant memory.
+
+**YARA + embedded IOCs** — For instant matching against known-bad infrastructure. The agent can flag Cobalt Strike, SocGholish, and cryptominer indicators without any external API call.
+
+**Flask + SocketIO** — The analysis takes 30-60 minutes. The real-time dashboard streams agent logs, findings, and visualizations as they're produced so you don't stare at a blank screen.
 
 ## How the Agent Works
 
