@@ -6,7 +6,13 @@
   --text-muted: #a1a1aa;
   --accent: #22d3ee;
   --accent-hover: #06b6d4;
+  --accent-dim: rgba(34, 211, 238, 0.1);
+  --accent-border: rgba(34, 211, 238, 0.2);
+  --purple: #a78bfa;
+  --green: #4ade80;
+  --amber: #fbbf24;
   --border: #27272a;
+  --border-light: #3f3f46;
   --font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --max-width: 800px;
@@ -28,6 +34,11 @@ body {
   color: var(--text);
   line-height: 1.7;
   min-height: 100vh;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+  color: var(--text);
 }
 
 a {
@@ -171,87 +182,202 @@ p {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1.5rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
   border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.05);
 }
 
 /* Tags */
 .tag {
   display: inline-block;
-  background: rgba(34, 211, 238, 0.1);
+  background: var(--accent-dim);
   color: var(--accent);
   font-family: var(--font-mono);
   font-size: 0.75rem;
   padding: 0.2rem 0.6rem;
   border-radius: 4px;
-  border: 1px solid rgba(34, 211, 238, 0.2);
+  border: 1px solid var(--accent-border);
 }
 
-/* Blog post styles */
+/* ===================== */
+/* Blog Prose Styles     */
+/* ===================== */
 .prose {
-  line-height: 1.8;
+  line-height: 1.85;
+  font-size: 1.02rem;
 }
 
 .prose h2 {
-  margin-top: 2.5rem;
+  margin-top: 3rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
 }
 
 .prose h3 {
-  margin-top: 2rem;
+  margin-top: 2.25rem;
+  color: var(--accent);
+  font-size: 1.15rem;
 }
 
 .prose p {
   color: var(--text);
+  margin-bottom: 1.25rem;
 }
 
+/* Inline code — accent-tinted pill */
 .prose code {
   font-family: var(--font-mono);
-  background: var(--bg-secondary);
-  padding: 0.15rem 0.4rem;
+  background: var(--accent-dim);
+  color: var(--accent);
+  padding: 0.15rem 0.45rem;
   border-radius: 4px;
-  font-size: 0.9em;
+  font-size: 0.88em;
+  border: 1px solid var(--accent-border);
 }
 
+/* Code blocks */
 .prose pre {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1.25rem;
   overflow-x: auto;
-  margin: 1.5rem 0;
+  margin: 1.75rem 0;
+  position: relative;
 }
 
 .prose pre code {
   background: none;
+  color: var(--text);
   padding: 0;
+  border: none;
+  font-size: 0.9em;
+  line-height: 1.6;
 }
 
+/* Bold text — slightly brighter */
+.prose strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Lists */
 .prose ul,
 .prose ol {
-  margin: 1rem 0;
+  margin: 1.25rem 0;
   padding-left: 1.5rem;
   color: var(--text);
 }
 
 .prose li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
+.prose li strong {
+  color: var(--accent);
+}
+
+/* Nested list items for tech stacks */
+.prose ul ul {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Blockquotes */
 .prose blockquote {
   border-left: 3px solid var(--accent);
-  padding-left: 1rem;
-  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  margin: 1.75rem 0;
+  background: var(--accent-dim);
+  border-radius: 0 6px 6px 0;
   color: var(--text-muted);
   font-style: italic;
 }
 
+.prose blockquote p {
+  color: var(--text-muted);
+  margin-bottom: 0;
+}
+
+/* Images */
 .prose img {
   max-width: 100%;
   border-radius: 8px;
-  margin: 1.5rem 0;
+  margin: 1.75rem 0;
+  border: 1px solid var(--border);
+}
+
+/* Tables — styled with accent tones */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.75rem 0;
+  font-size: 0.9rem;
+  overflow-x: auto;
+  display: block;
+}
+
+.prose thead {
+  background: var(--accent-dim);
+}
+
+.prose th {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.75rem 0.75rem;
+  text-align: left;
+  border-bottom: 2px solid var(--accent-border);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.prose td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.prose tr:hover td {
+  background: rgba(34, 211, 238, 0.03);
+}
+
+.prose td strong {
+  color: var(--green);
+}
+
+/* Horizontal rules */
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2.5rem 0;
+}
+
+/* Links in prose */
+.prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-border);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s, color 0.2s;
+}
+
+.prose a:hover {
+  text-decoration-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+/* Emphasis */
+.prose em {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Responsive */
@@ -266,5 +392,14 @@ p {
 
   main {
     padding: 2rem 1rem;
+  }
+
+  .prose table {
+    font-size: 0.8rem;
+  }
+
+  .prose th,
+  .prose td {
+    padding: 0.5rem;
   }
 }
